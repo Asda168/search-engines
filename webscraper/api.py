@@ -1,7 +1,8 @@
-"""FastAPI app — also the Vercel entrypoint (must live under api/ with a
-literal `app = FastAPI(...)` for Vercel's Python builder to detect it).
+"""FastAPI app — also the Vercel entrypoint (see pyproject.toml's
+[tool.vercel] entrypoint, which points here since this module isn't at
+one of Vercel's default root-level entrypoint filenames).
 
-Local dev: uvicorn api.index:app --reload
+Local dev: uvicorn webscraper.api:app --reload
 Then open http://127.0.0.1:8000/ for a browser test UI.
 """
 from __future__ import annotations
@@ -11,9 +12,9 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 
-from webscraper.scraper import ScrapeError, scrape_and_search
+from .scraper import ScrapeError, scrape_and_search
 
-STATIC_DIR = Path(__file__).resolve().parent.parent / "webscraper" / "static"
+STATIC_DIR = Path(__file__).parent / "static"
 
 app = FastAPI(title="Web Scraper Search", version="1.0.0")
 
