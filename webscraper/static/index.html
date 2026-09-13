@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web Scraper Search</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f7f8;
+    --surface: #ffffff;
+    --border: #e2e2e6;
+    --text: #1a1a1e;
+    --muted: #6b6b74;
+    --accent: #3457d5;
+    --accent-text: #ffffff;
+    --error-bg: #fdecea;
+    --error-text: #9a2323;
+    --score-bg: #eef1fd;
+    --score-text: #3457d5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16161a;
+      --surface: #1f1f24;
+      --border: #33333a;
+      --text: #f0f0f2;
+      --muted: #9a9aa4;
+      --accent: #7c93ff;
+      --accent-text: #10101a;
+      --error-bg: #3a1d1d;
+      --error-text: #ff9b9b;
+      --score-bg: #232a4d;
+      --score-text: #a9b8ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 32px 16px 64px;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--muted);
+    margin: 0 0 24px;
+    font-size: 0.95rem;
+  }
+  form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: grid;
+    gap: 14px;
+  }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 140px;
+    gap: 14px;
+  }
+  @media (max-width: 480px) {
+    .row { grid-template-columns: 1fr; }
+  }
+  button {
+    justify-self: start;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: var(--accent-text);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .status {
+    margin: 16px 2px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+  .status.error {
+    color: var(--error-text);
+    background: var(--error-bg);
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+  .summary {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0 2px 12px;
+  }
+  ul.results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-head h3 {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  .card-head a {
+    color: var(--text);
+    text-decoration: none;
+  }
+  .card-head a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+  .score {
+    flex-shrink: 0;
+    background: var(--score-bg);
+    color: var(--score-text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .snippet {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .empty {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Web Scraper Search</h1>
+  <p class="subtitle">Scrape a page and fuzzy-search its content blocks.</p>
+
+  <form id="search-form">
+    <div>
+      <label for="url">Target URL</label>
+      <input id="url" name="url" type="url" placeholder="https://pythonbooks.org/free-books/" required>
+    </div>
+    <div class="row">
+      <div>
+        <label for="query">Search query</label>
+        <input id="query" name="query" type="text" placeholder="data science" required>
+      </div>
+      <div>
+        <label for="threshold">Threshold</label>
+        <input id="threshold" name="threshold" type="number" min="0" max="100" value="60">
+      </div>
+    </div>
+    <button id="submit-btn" type="submit">Search</button>
+  </form>
+
+  <p id="status" class="status"></p>
+  <p id="summary" class="summary"></p>
+  <ul id="results" class="results"></ul>
+</main>
+
+<script>
+  const form = document.getElementById('search-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const statusEl = document.getElementById('status');
+  const summaryEl = document.getElementById('summary');
+  const resultsEl = document.getElementById('results');
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+
+  function setStatus(message, isError) {
+    statusEl.textContent = message || '';
+    statusEl.className = 'status' + (isError ? ' error' : '');
+  }
+
+  function renderResults(data) {
+    const count = data.total_matches;
+    summaryEl.textContent = `${count} match${count === 1 ? '' : 'es'} for "${data.query}"`;
+
+    if (count === 0) {
+      resultsEl.innerHTML = '';
+      const empty = document.createElement('p');
+      empty.className = 'empty';
+      empty.textContent = 'No matches above the threshold. Try lowering it.';
+      resultsEl.appendChild(empty);
+      return;
+    }
+
+    resultsEl.innerHTML = data.results.map(r => `
+      <li class="card">
+        <div class="card-head">
+          <h3>${r.url
+            ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.title)}</a>`
+            : escapeHtml(r.title)}</h3>
+          <span class="score">${r.score}</span>
+        </div>
+        <p class="snippet">${escapeHtml(r.snippet)}</p>
+      </li>
+    `).join('');
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const url = document.getElementById('url').value.trim();
+    const query = document.getElementById('query').value.trim();
+    const threshold = document.getElementById('threshold').value || 60;
+
+    resultsEl.innerHTML = '';
+    summaryEl.textContent = '';
+    setStatus('Searching…', false);
+    submitBtn.disabled = true;
+
+    const params = new URLSearchParams({ url, q: query, threshold });
+
+    try {
+      const res = await fetch(`/search?${params.toString()}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || `Request failed with status ${res.status}`);
+      }
+
+      setStatus('', false);
+      renderResults(data);
+    } catch (err) {
+      setStatus(err.message || 'Something went wrong.', true);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
