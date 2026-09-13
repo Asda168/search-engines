@@ -67,7 +67,7 @@ status 1 and prints a JSON error object instead:
 Start the server:
 
 ```bash
-uvicorn webscraper.api:app --reload
+uvicorn api.index:app --reload
 ```
 
 Open **http://127.0.0.1:8000/** in a browser for a simple test UI — enter a URL, a query, and a threshold, and it renders ranked results as cards (title links out to the source, score badge, snippet).
@@ -92,6 +92,20 @@ Interactive API docs are available at `http://127.0.0.1:8000/docs` while the ser
 from webscraper import scrape_and_search
 
 result = scrape_and_search("https://pythonbooks.org/free-books/", "python", threshold=60)
+```
+
+## Deploying to Vercel
+
+The project is set up for zero-config deployment on Vercel's Python runtime:
+
+- `api/index.py` — the FastAPI app instance, which Vercel requires as a literal `app = FastAPI(...)` under `api/` (a re-export from elsewhere isn't auto-detected).
+- `vercel.json` — rewrites every path to `/api/index` so the single FastAPI app handles all routes (`/`, `/search`, `/health`).
+
+Deploy with:
+
+```bash
+vercel        # preview deployment
+vercel --prod # production deployment
 ```
 
 ## Notes
